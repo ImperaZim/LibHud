@@ -1,0 +1,16 @@
+name: LibHud
+version: 1.0.0
+
+authors:
+ - ImperaZim
+
+api: 5.0.0
+main: imperazim\hud\LibHud
+load: STARTUP
+
+extensions:
+  Core: ">=8.2"
+
+autoload:
+  psr-4:
+    imperazim\\hud\\: src/imperazim/hud
