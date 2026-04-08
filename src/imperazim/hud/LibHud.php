@@ -3,8 +3,7 @@
 declare(strict_types = 1);
 
 namespace imperazim\hud;
-
-use pocketmine\plugin\Plugin;
+ 
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
@@ -33,7 +32,7 @@ final class LibHud extends PluginBase implements Listener {
                     $this->getLogger()->debug("Got BossEventPacket " . ($pk->eventType === BossEventPacket::TYPE_REGISTER_PLAYER ? "" : "un") . "register by client for player id " . $pk->playerActorUniqueId);
                     break;
                 default:
-                    $e->getOrigin()->getPlayer()->kick("Invalid packet received", false);
+                    $e->getOrigin()->getPlayer()->kick(reason: "Invalid packet received");
             }
         }
     }

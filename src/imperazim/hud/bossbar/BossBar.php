@@ -15,8 +15,7 @@ use pocketmine\entity\AttributeMap;
 use pocketmine\entity\AttributeFactory;
 use pocketmine\network\mcpe\protocol\BossEventPacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
-use pocketmine\network\mcpe\protocol\types\BossBarColor;
-use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
+use pocketmine\network\mcpe\protocol\types\BossBarColor; 
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
@@ -382,8 +381,9 @@ class BossBar {
             $this->actorId ?? $player->getId(),
             $this->getFullTitle(),
             $this->getPercentage(),
-            1,
-            $this->getColor()
+            false,
+            $this->getColor(),
+            1
           ));
         }
       }

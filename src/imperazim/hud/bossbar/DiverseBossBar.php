@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace imperazim\hud\bossbar;
 
-use GlobalLogger;
 use pocketmine\player\Player;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\AttributeMap;
@@ -202,7 +201,7 @@ final class DiverseBossBar extends BossBar {
   public function showTo(array $players): void {
     foreach ($players as $player) {
       if (!$player->isConnected()) continue;
-      $player->getNetworkSession()->sendDataPacket(BossEventPacket::show($this->actorId ?? $player->getId(), $this->getFullTitleFor($player), $this->getPercentageFor($player), 1, $this->getColorFor($player)));
+      $player->getNetworkSession()->sendDataPacket(BossEventPacket::show($this->actorId ?? $player->getId(), $this->getFullTitleFor($player), $this->getPercentageFor($player), false, $this->getColorFor($player), 1));
     }
   }
 
@@ -213,7 +212,7 @@ final class DiverseBossBar extends BossBar {
   protected function sendBossPacket(array $players): void {
     foreach ($players as $player) {
       if (!$player->isConnected()) continue;
-      $player->getNetworkSession()->sendDataPacket(BossEventPacket::show($this->actorId ?? $player->getId(), $this->getFullTitleFor($player), $this->getPercentageFor($player), 1, $this->getColorFor($player)));
+      $player->getNetworkSession()->sendDataPacket(BossEventPacket::show($this->actorId ?? $player->getId(), $this->getFullTitleFor($player), $this->getPercentageFor($player), false, $this->getColorFor($player), 1));
     }
   }
 
