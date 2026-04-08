@@ -32,7 +32,10 @@ final class LibHud extends PluginBase implements Listener {
                     $this->getLogger()->debug("Got BossEventPacket " . ($pk->eventType === BossEventPacket::TYPE_REGISTER_PLAYER ? "" : "un") . "register by client for player id " . $pk->playerActorUniqueId);
                     break;
                 default:
-                    $e->getOrigin()->getPlayer()->kick(reason: "Invalid packet received");
+                    $e->cancel();
+                    $player = $e->getOrigin()->getPlayer();
+                    $playerName = $player !== null ? $player->getName() : 'unknown';
+                    $this->getLogger()->warning("Cancelled unexpected BossEventPacket type {$pk->eventType} from {$playerName}");
             }
         }
     }

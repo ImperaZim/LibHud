@@ -51,12 +51,10 @@ final class ScoreBoardManager {
       if (isset(self::$scoreboards[$player->getName()])) {
         $scoreboard = self::$scoreboards[$player->getName()];
         $objectiveName = $scoreboard->getObjectiveName();
-        if ($objectiveName !== null) {
-          $pk = new RemoveObjectivePacket();
-          $pk->objectiveName = $objectiveName;
-          $player->getNetworkSession()->sendDataPacket($pk);
-          unset(self::$scoreboards[$player->getName()]);
-        }
+        $pk = new RemoveObjectivePacket();
+        $pk->objectiveName = $objectiveName;
+        $player->getNetworkSession()->sendDataPacket($pk);
+        unset(self::$scoreboards[$player->getName()]);
       }
     } catch (HudException $e) {
       GlobalLogger::get()->logException($e);
@@ -72,8 +70,13 @@ final class ScoreBoardManager {
     try {
       if (isset(self::$scoreboards[$player->getName()])) {
         $scoreboard = self::$scoreboards[$player->getName()];
-        $scoreboard->setLine(new ScoreLine($score, ""));
-        self::sendToPlayer($player, $scoreboard);
+        $entry = new ScoreLine($score, "");
+        $entry->objectiveName = $scoreboard->getObjectiveName();
+
+        $pk = new SetScorePacket();
+        $pk->type = SetScorePacket::TYPE_REMOVE;
+        $pk->entries = [$entry];
+        $player->getNetworkSession()->sendDataPacket($pk);
       }
     } catch (HudException $e) {
       GlobalLogger::get()->logException($e);

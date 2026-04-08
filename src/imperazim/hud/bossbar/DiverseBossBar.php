@@ -140,7 +140,7 @@ final class DiverseBossBar extends BossBar {
   public function getFullTitleFor(Player $player): string {
     $text = $this->titles[$player->getId()] ?? "";
     if (!empty($this->subTitles[$player->getId()] ?? "")) {
-      $text .= "\n\n" . $this->subTitles[$player->getId()] ?? "";
+      $text .= "\n\n" . ($this->subTitles[$player->getId()] ?? "");
     }
     if (empty($text)) $text = $this->getFullTitle();
     return mb_convert_encoding($text, 'UTF-8');
