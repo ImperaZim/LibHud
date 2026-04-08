@@ -54,7 +54,13 @@ final class DiverseBossBar extends BossBar {
   * @return static Returns an instance of DiverseBossBar.
   */
   public function removePlayer(Player $player): static {
-    unset($this->attributeMaps[$player->getId()]);
+    $id = $player->getId();
+    unset(
+      $this->attributeMaps[$id],
+      $this->titles[$id],
+      $this->subTitles[$id],
+      $this->colors[$id]
+    );
     return parent::removePlayer($player);
   }
 
@@ -155,7 +161,7 @@ final class DiverseBossBar extends BossBar {
   public function setPercentageFor(array $players, float $percentage): static {
     $percentage = (float) min(1.0, max(0.00, $percentage));
     foreach ($players as $player) {
-      $this->getAttributeMap($player)->get(Attribute::HEALTH)->setValue($percentage * $this->getAttributeMap($player)->get(Attribute::HEALTH)->getMaxValue(), true, true);
+      $this->getPlayerAttributeMap($player)->get(Attribute::HEALTH)->setValue($percentage * $this->getPlayerAttributeMap($player)->get(Attribute::HEALTH)->getMaxValue(), true, true);
     }
     $this->sendAttributesPacket($players);
     $this->sendBossHealthPacket($players);
@@ -168,7 +174,7 @@ final class DiverseBossBar extends BossBar {
   * @return float Returns the health percentage.
   */
   public function getPercentageFor(Player $player): float {
-    return $this->getAttributeMap($player)->get(Attribute::HEALTH)->getValue() / 100;
+    return $this->getPlayerAttributeMap($player)->get(Attribute::HEALTH)->getValue() / 100;
   }
 
   /**
@@ -199,10 +205,7 @@ final class DiverseBossBar extends BossBar {
   * @param Player[] $players The players to show the boss bar to.
   */
   public function showTo(array $players): void {
-    foreach ($players as $player) {
-      if (!$player->isConnected()) continue;
-      $player->getNetworkSession()->sendDataPacket(BossEventPacket::show($this->actorId ?? $player->getId(), $this->getFullTitleFor($player), $this->getPercentageFor($player), false, $this->getColorFor($player), 1));
-    }
+    $this->sendBossPacket($players);
   }
 
   /**
@@ -237,7 +240,7 @@ final class DiverseBossBar extends BossBar {
     $pk->actorRuntimeId = $this->actorId;
     foreach ($players as $player) {
       if (!$player->isConnected()) continue;
-      $pk->entries = $this->getAttributeMap($player)->needSend();
+      $pk->entries = $this->getPlayerAttributeMap($player)->needSend();
       $player->getNetworkSession()->sendDataPacket($pk);
     }
   }
@@ -255,14 +258,11 @@ final class DiverseBossBar extends BossBar {
 
   /**
   * Retrieves the attribute map for a specific player.
-  * @param Player|null $player The player to retrieve the attribute map for.
-  * @return AttributeMap Returns the attribute map.
+  * @param Player $player The player to retrieve the attribute map for.
+  * @return AttributeMap Returns the player-specific attribute map, or the default.
   */
-  public function getAttributeMap(Player $player = null): AttributeMap {
-    if ($player instanceof Player) {
-      return $this->attributeMaps[$player->getId()] ?? parent::getAttributeMap();
-    }
-    return parent::getAttributeMap();
+  public function getPlayerAttributeMap(Player $player): AttributeMap {
+    return $this->attributeMaps[$player->getId()] ?? parent::getAttributeMap();
   }
 
   /**
@@ -271,7 +271,7 @@ final class DiverseBossBar extends BossBar {
   * @return EntityMetadataCollection Returns the property manager.
   */
   public function getPropertyManager(Player $player = null): EntityMetadataCollection {
-    $propertyManager = $this->propertyManager;
+    $propertyManager = clone $this->propertyManager;
     if ($player instanceof Player) $propertyManager->setString(EntityMetadataProperties::NAMETAG, $this->getFullTitleFor($player));
     else $propertyManager->setString(EntityMetadataProperties::NAMETAG, $this->getFullTitle());
     return $propertyManager;

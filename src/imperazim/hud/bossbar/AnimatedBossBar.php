@@ -138,9 +138,6 @@ final class AnimatedBossBar extends BossBar {
     * Gets the animation progress (0.0 - 1.0).
     */
     public function getAnimationProgress(): float {
-        if ($this->duration === 0) {
-            return 0.0;
-        }
         return min(1.0, $this->elapsed / $this->duration);
     }
 }

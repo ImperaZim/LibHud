@@ -5,13 +5,10 @@ declare(strict_types = 1);
 namespace imperazim\hud\scoreboard;
 
 use GlobalLogger;
-use imperazim\hud\exception\HudException;
 
 use pocketmine\player\Player;
 use pocketmine\network\mcpe\protocol\SetScorePacket;
 use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
-use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
-use pocketmine\network\mcpe\protocol\SetDisplayObjectivePacket;
 
 /**
 * Class ScoreBoardManager
@@ -33,11 +30,11 @@ final class ScoreBoardManager {
         self::removeFromPlayer($player);
       }
       self::$scoreboards[$player->getName()] = $scoreboard;
-      $player->getNetworkSession()->sendDataPacket($scoreboard);
+      $player->getNetworkSession()->sendDataPacket($scoreboard->toPacket());
 
       $lines = $scoreboard->getLines();
       $player->getNetworkSession()->sendDataPacket($lines);
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -56,7 +53,7 @@ final class ScoreBoardManager {
         $player->getNetworkSession()->sendDataPacket($pk);
         unset(self::$scoreboards[$player->getName()]);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -75,10 +72,10 @@ final class ScoreBoardManager {
 
         $pk = new SetScorePacket();
         $pk->type = SetScorePacket::TYPE_REMOVE;
-        $pk->entries = [$entry];
+        $pk->entries = [$entry->toEntry()];
         $player->getNetworkSession()->sendDataPacket($pk);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -90,11 +87,19 @@ final class ScoreBoardManager {
   public static function clearAllLines(Player $player): void {
     try {
       if (isset(self::$scoreboards[$player->getName()])) {
+        $scoreboard = self::$scoreboards[$player->getName()];
+        $entries = [];
         for ($i = 1; $i <= 15; $i++) {
-          self::clearLine($player, $i);
+          $entry = new ScoreLine($i, "");
+          $entry->objectiveName = $scoreboard->getObjectiveName();
+          $entries[] = $entry->toEntry();
         }
+        $pk = new SetScorePacket();
+        $pk->type = SetScorePacket::TYPE_REMOVE;
+        $pk->entries = $entries;
+        $player->getNetworkSession()->sendDataPacket($pk);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -109,9 +114,17 @@ final class ScoreBoardManager {
         $scoreboard = self::$scoreboards[$player->getName()];
         self::sendToPlayer($player, $scoreboard);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
+  }
+
+  /**
+  * Cleans up the scoreboard entry for a player (call on quit).
+  * @param Player $player
+  */
+  public static function cleanup(Player $player): void {
+    unset(self::$scoreboards[$player->getName()]);
   }
 
   /**

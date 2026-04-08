@@ -4,19 +4,18 @@ declare(strict_types = 1);
 
 namespace imperazim\hud\scoreboard;
 
-use imperazim\hud\exception\HudException;
-
-use pocketmine\player\Player;
 use pocketmine\network\mcpe\protocol\SetScorePacket;
-use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
-use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
 use pocketmine\network\mcpe\protocol\SetDisplayObjectivePacket;
 
 /**
 * Class ScoreBoard
 * @package imperazim\hud\scoreboard
 */
-final class ScoreBoard extends SetDisplayObjectivePacket {
+final class ScoreBoard {
+
+  public const DISPLAY_SLOT_LIST = 'list';
+  public const DISPLAY_SLOT_SIDEBAR = 'sidebar';
+  public const DISPLAY_SLOT_BELOW_NAME = 'belowname';
 
   public string $displaySlot;
   public string $displayName;
@@ -123,13 +122,27 @@ final class ScoreBoard extends SetDisplayObjectivePacket {
   }
 
   /**
-  * Get the lines.
+  * Converts this ScoreBoard into a SetDisplayObjectivePacket.
+  * @return SetDisplayObjectivePacket
+  */
+  public function toPacket(): SetDisplayObjectivePacket {
+    $pk = new SetDisplayObjectivePacket();
+    $pk->displaySlot = $this->displaySlot;
+    $pk->objectiveName = $this->objectiveName;
+    $pk->displayName = $this->displayName;
+    $pk->criteriaName = $this->criteriaName;
+    $pk->sortOrder = $this->sortOrder;
+    return $pk;
+  }
+
+  /**
+  * Get the lines as a SetScorePacket.
   * @return SetScorePacket
   */
   public function getLines(): SetScorePacket {
     $lines = new SetScorePacket();
     $lines->type = SetScorePacket::TYPE_CHANGE;
-    $lines->entries = $this->lines;
+    $lines->entries = array_map(fn(ScoreLine $l) => $l->toEntry(), $this->lines);
     return $lines;
   }
 
@@ -138,7 +151,7 @@ final class ScoreBoard extends SetDisplayObjectivePacket {
   * @param ScoreLine $line
   */
   public function setLine(ScoreLine $line): self {
-    $line->objectiveName = $this->objectiveName;
+    $line->setObjectiveName($this->objectiveName);
     $this->lines[] = $line;
     return $this;
   }
@@ -150,7 +163,7 @@ final class ScoreBoard extends SetDisplayObjectivePacket {
   public function setLines(array $lines): self {
     $this->lines = [];
     foreach ($lines as $line) {
-      $line->objectiveName = $this->objectiveName;
+      $line->setObjectiveName($this->objectiveName);
       $this->lines[] = $line;
     }
     return $this;

@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace imperazim\hud\bossbar;
 
 use GlobalLogger;
-use imperazim\hud\exception\HudException;
 
 use pocketmine\Server;
 use pocketmine\player\Player;
@@ -13,12 +12,15 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\AttributeMap;
 use pocketmine\entity\AttributeFactory;
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\AddActorPacket;
 use pocketmine\network\mcpe\protocol\BossEventPacket;
 use pocketmine\network\mcpe\protocol\RemoveActorPacket;
-use pocketmine\network\mcpe\protocol\types\BossBarColor; 
+use pocketmine\network\mcpe\protocol\types\BossBarColor;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 
 /**
 * Class BossBar
@@ -39,7 +41,7 @@ class BossBar {
   private int $color = BossBarColor::PURPLE;
 
   /** @var int|null */
-  public ?int $actorId = null;
+  protected ?int $actorId = null;
 
   /** @var AttributeMap */
   private AttributeMap $attributeMap;
@@ -52,6 +54,7 @@ class BossBar {
   * Initializes a new boss bar instance.
   */
   public function __construct() {
+    $this->actorId = Entity::nextRuntimeId();
     $this->attributeMap = new AttributeMap();
     $this->getAttributeMap()->add(AttributeFactory::getInstance()->mustGet(Attribute::HEALTH)
       ->setMaxValue(100.0)
@@ -88,10 +91,11 @@ class BossBar {
   public function addPlayer(Player $player): static {
     try {
       if (!isset($this->players[$player->getId()])) {
+        $this->spawnBossEntity($player);
         $this->sendBossPacket([$player]);
         $this->players[$player->getId()] = $player;
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -107,7 +111,7 @@ class BossBar {
       foreach ($players as $player) {
         $this->addPlayer($player);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -122,11 +126,12 @@ class BossBar {
     try {
       if (isset($this->players[$player->getId()])) {
         $this->sendRemoveBossPacket([$player]);
+        $this->despawnBossEntity($player);
         unset($this->players[$player->getId()]);
       } else {
         GlobalLogger::get()->debug("Removed player that was not added to the boss bar (" . $this . ")");
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -142,7 +147,7 @@ class BossBar {
       foreach ($players as $player) {
         $this->removePlayer($player);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -157,7 +162,7 @@ class BossBar {
       foreach ($this->getPlayers() as $player) {
         $this->removePlayer($player);
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -180,7 +185,7 @@ class BossBar {
     try {
       $this->title = $title;
       $this->sendBossTextPacket($this->getPlayers());
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -203,7 +208,7 @@ class BossBar {
     try {
       $this->subTitle = $subTitle;
       $this->sendBossTextPacket($this->getPlayers());
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -231,7 +236,7 @@ class BossBar {
       $percentage = min(1.0, max(0.0, $percentage));
       $this->getAttributeMap()->get(Attribute::HEALTH)->setValue($percentage * $this->getAttributeMap()->get(Attribute::HEALTH)->getMaxValue(), true, true);
       $this->sendBossHealthPacket($this->getPlayers());
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -262,7 +267,7 @@ class BossBar {
     try {
       $this->color = $color;
       $this->sendBossPacket($this->getPlayers());
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -279,7 +284,7 @@ class BossBar {
           $player->getNetworkSession()->sendDataPacket(BossEventPacket::hide($this->actorId ?? $player->getId()));
         }
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -327,7 +332,7 @@ class BossBar {
         throw new HudException("Entity $entity cannot be used since it is not valid anymore (closed or flagged for despawn)");
       }
 
-      if ($this->getEntity() instanceof Entity && !$entity instanceof Player) {
+      if ($this->getEntity() instanceof Entity && !($entity instanceof Player)) {
         $this->getEntity()->flagForDespawn();
       } else {
         $pk = new RemoveActorPacket();
@@ -340,13 +345,13 @@ class BossBar {
         $this->attributeMap = $entity->getAttributeMap();
         $this->getAttributeMap()->add($entity->getAttributeMap()->get(Attribute::HEALTH));
         $this->propertyManager = $entity->getNetworkProperties();
-        if (!$entity instanceof Player) $entity->despawnFromAll();
+        if (!($entity instanceof Player)) $entity->despawnFromAll();
       } else {
         $this->actorId = Entity::nextRuntimeId();
       }
 
       $this->sendBossPacket($this->getPlayers());
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -359,14 +364,46 @@ class BossBar {
   */
   public function resetEntity(bool $removeEntity = false): static {
     try {
-      if ($removeEntity && $this->getEntity() instanceof Entity && !$this->getEntity() instanceof Player) {
+      if ($removeEntity && $this->getEntity() instanceof Entity && !($this->getEntity() instanceof Player)) {
         $this->getEntity()->close();
       }
       $this->setEntity();
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
+  }
+
+  /**
+  * Spawn the fake invisible entity on the client for this boss bar.
+  * @param Player $player
+  */
+  protected function spawnBossEntity(Player $player): void {
+    if (!$player->isConnected()) return;
+    $pk = AddActorPacket::create(
+      $this->actorId,
+      $this->actorId,
+      "minecraft:slime",
+      $player->getPosition()->asVector3(),
+      null,
+      0, 0, 0, 0,
+      [],
+      $this->propertyManager->getAll(),
+      new PropertySyncData([], []),
+      []
+    );
+    $player->getNetworkSession()->sendDataPacket($pk);
+  }
+
+  /**
+  * Despawn the fake entity from the client.
+  * @param Player $player
+  */
+  protected function despawnBossEntity(Player $player): void {
+    if (!$player->isConnected()) return;
+    $pk = new RemoveActorPacket();
+    $pk->actorUniqueId = $this->actorId;
+    $player->getNetworkSession()->sendDataPacket($pk);
   }
 
   /**
@@ -387,7 +424,7 @@ class BossBar {
           ));
         }
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -403,7 +440,7 @@ class BossBar {
           $player->getNetworkSession()->sendDataPacket(BossEventPacket::hide($this->actorId ?? $player->getId()));
         }
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -422,7 +459,7 @@ class BossBar {
           ));
         }
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -441,7 +478,7 @@ class BossBar {
           ));
         }
       }
-    } catch (HudException $e) {
+    } catch (\Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -456,10 +493,9 @@ class BossBar {
 
   /**
   * Get the attribute map associated with the boss bar.
-  * @param Player|null $player
   * @return AttributeMap
   */
-  public function getAttributeMap(Player $player = null): AttributeMap {
+  public function getAttributeMap(): AttributeMap {
     return $this->attributeMap;
   }
 

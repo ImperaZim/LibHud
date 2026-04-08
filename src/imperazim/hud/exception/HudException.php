@@ -8,4 +8,4 @@ namespace imperazim\hud\exception;
 * Class HudException
 * @package imperazim\hud\exception
 */
-class HudException extends \RuntimeException {}
+final class HudException extends \RuntimeException {}

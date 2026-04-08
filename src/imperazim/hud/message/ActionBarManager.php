@@ -28,7 +28,7 @@ final class ActionBarManager {
         }
 
         $pk = new TextPacket();
-        $pk->type = TextPacket::TYPE_JUKEBOX_POPUP;
+        $pk->type = TextPacket::TYPE_TIP;
         $pk->message = $message;
         $pk->needsTranslation = false;
         $pk->parameters = [];

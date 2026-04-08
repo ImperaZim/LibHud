@@ -6,19 +6,26 @@ namespace imperazim\hud\scoreboard;
 
 use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
 
-final class ScoreLine extends ScorePacketEntry {
+/**
+* Class ScoreLine
+* @package imperazim\hud\scoreboard
+*/
+final class ScoreLine {
+
+  public const TYPE_FAKE_PLAYER = ScorePacketEntry::TYPE_FAKE_PLAYER;
 
 	public int $type;
 	public int $score;
   public int $scoreboardId;
-	public string $objectiveName;
+	public string $objectiveName = '';
+  private string $customName;
 
   /**
   * ScoreLine constructor.
   * @param int $score
   * @param string $message
   */
-  public function __construct(int $score = 0, string $message = "") {
+  public function __construct(int $score = 1, string $message = "") {
     if ($score < 1 || $score > 15) {
       throw new \InvalidArgumentException("Score must be between 1 and 15. Given: $score");
     }
@@ -26,6 +33,28 @@ final class ScoreLine extends ScorePacketEntry {
     $this->scoreboardId = $score;
     $this->customName = $message;
     $this->type = self::TYPE_FAKE_PLAYER;
+  }
+
+  /**
+  * Converts this ScoreLine into a ScorePacketEntry.
+  * @return ScorePacketEntry
+  */
+  public function toEntry(): ScorePacketEntry {
+    $entry = new ScorePacketEntry();
+    $entry->type = $this->type;
+    $entry->score = $this->score;
+    $entry->scoreboardId = $this->scoreboardId;
+    $entry->objectiveName = $this->objectiveName;
+    $entry->customName = $this->customName;
+    return $entry;
+  }
+
+  /**
+  * Get the message text.
+  * @return string
+  */
+  public function getMessage(): string {
+    return $this->customName;
   }
 
   /**

@@ -132,6 +132,16 @@ final class HudComposer {
     }
 
     /**
+    * Cleans up data for a disconnected player (call on quit).
+    *
+    * @param Player $player Player to clean up
+    */
+    public function cleanup(Player $player): void {
+        $id = $player->getId();
+        unset($this->layers[$id]);
+    }
+
+    /**
     * Removes all layers for all players.
     */
     public function clearEverything(): void {

@@ -3,15 +3,19 @@
 declare(strict_types = 1);
 
 namespace imperazim\hud;
- 
+
+use pocketmine\player\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\BossEventPacket;
+use imperazim\hud\tablist\TabList;
+use imperazim\hud\scoreboard\ScoreBoardManager;
 
 /**
 * Main library for HUD components (BossBar & ScoreBoard).
-* Handles BossBar packet validation.
+* Handles BossBar packet validation and player cleanup.
 */
 final class LibHud extends PluginBase implements Listener {
 
@@ -38,5 +42,15 @@ final class LibHud extends PluginBase implements Listener {
                     $this->getLogger()->warning("Cancelled unexpected BossEventPacket type {$pk->eventType} from {$playerName}");
             }
         }
+    }
+
+    /**
+    * Cleans up HUD caches when a player disconnects.
+    * @param PlayerQuitEvent $event
+    */
+    public function onPlayerQuit(PlayerQuitEvent $event): void {
+        $player = $event->getPlayer();
+        TabList::cleanup($player);
+        ScoreBoardManager::cleanup($player);
     }
 }
