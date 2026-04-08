@@ -1,0 +1,51 @@
+name: Sync to EasyLibrary
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/imperazim/hud/**'
+
+jobs:
+  sync:
+    if: "!contains(github.event.head_commit.message, '[sync]')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout LibHud
+        uses: actions/checkout@v4
+        with:
+          path: standalone
+
+      - name: Checkout EasyLibrary
+        uses: actions/checkout@v4
+        with:
+          repository: ImperaZim/EasyLibrary
+          ref: development
+          token: ${{ secrets.SYNC_TOKEN }}
+          path: easylibrary
+
+      - name: Sync files
+        run: |
+          SRC="standalone/src/imperazim/hud"
+          DEST="easylibrary/src/imperazim/hud"
+
+          # Remove old embedded files
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+
+          # Copy all files except the entry point
+          rsync -av --exclude='LibHud.php' "$SRC/" "$DEST/"
+
+      - name: Commit and push
+        run: |
+          cd easylibrary
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to sync"
+            exit 0
+          fi
+          git add src/imperazim/hud/
+          git commit -m "[sync] Update embedded LibHud from standalone"
+          git push
