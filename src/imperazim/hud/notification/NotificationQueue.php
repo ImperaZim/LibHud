@@ -10,6 +10,9 @@ use pocketmine\scheduler\ClosureTask;
 use imperazim\hud\message\ToastManager;
 use imperazim\hud\message\TitleManager;
 use imperazim\hud\message\ActionBarManager;
+use pocketmine\scheduler\TaskScheduler;
+use pocketmine\Server;
+use RuntimeException;
 
 /**
 * Queues notifications (toast, title, actionbar) one at a time without overlap.
@@ -151,16 +154,16 @@ final class NotificationQueue {
         );
     }
 
-    private static function getScheduler(): \pocketmine\scheduler\TaskScheduler {
+    private static function getScheduler(): TaskScheduler {
         if (self::$plugin !== null) {
             return self::$plugin->getScheduler();
         }
-        $plugins = \pocketmine\Server::getInstance()->getPluginManager()->getPlugins();
+        $plugins = Server::getInstance()->getPluginManager()->getPlugins();
         foreach ($plugins as $plugin) {
             if ($plugin->isEnabled()) {
                 return $plugin->getScheduler();
             }
         }
-        throw new \RuntimeException("NotificationQueue: No plugin available. Call NotificationQueue::init(\$plugin) first.");
+        throw new RuntimeException("NotificationQueue: No plugin available. Call NotificationQueue::init(\$plugin) first.");
     }
 }

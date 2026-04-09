@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace imperazim\hud\composer;
 
 use pocketmine\player\Player;
+use Closure;
 
 /**
 * Composes multiple HUD elements per player in indexed layers.
@@ -21,7 +22,7 @@ use pocketmine\player\Player;
 */
 final class HudComposer {
 
-    /** @var array<int, array<string, array{priority: int, apply: \Closure, remove: \Closure|null}>> */
+    /** @var array<int, array<string, array{priority: int, apply: Closure, remove: Closure|null}>> */
     private array $layers = [];
 
     /**
@@ -29,15 +30,15 @@ final class HudComposer {
     *
     * @param Player $player Target player
     * @param string $key Unique layer identifier
-    * @param \Closure $apply Apply callback: fn(): void
-    * @param \Closure|null $remove Remove callback: fn(): void
+    * @param Closure $apply Apply callback: fn(): void
+    * @param Closure|null $remove Remove callback: fn(): void
     * @param int $priority Layer priority (lower = first)
     */
     public function setLayer(
         Player $player,
         string $key,
-        \Closure $apply,
-        ?\Closure $remove = null,
+        Closure $apply,
+        ?Closure $remove = null,
         int $priority = 0
     ): void {
         $id = $player->getId();

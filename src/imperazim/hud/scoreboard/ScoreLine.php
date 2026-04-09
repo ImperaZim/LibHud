@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace imperazim\hud\scoreboard;
 
 use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
+use InvalidArgumentException;
 
 /**
 * Class ScoreLine
@@ -27,7 +28,7 @@ final class ScoreLine {
   */
   public function __construct(int $score = 1, string $message = "") {
     if ($score < 1 || $score > 15) {
-      throw new \InvalidArgumentException("Score must be between 1 and 15. Given: $score");
+      throw new InvalidArgumentException("Score must be between 1 and 15. Given: $score");
     }
     $this->score = $score;
     $this->scoreboardId = $score;
@@ -63,7 +64,7 @@ final class ScoreLine {
   */
   public function setScore(int $score): void {
     if ($score < 1 || $score > 15) {
-      throw new \InvalidArgumentException("Score must be between 1 and 15. Given: $score");
+      throw new InvalidArgumentException("Score must be between 1 and 15. Given: $score");
     }
     $this->score = $score;
   }

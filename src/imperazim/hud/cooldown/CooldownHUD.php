@@ -10,6 +10,9 @@ use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskHandler;
 use pocketmine\network\mcpe\protocol\types\BossBarColor;
 use imperazim\hud\bossbar\BossBar;
+use pocketmine\scheduler\TaskScheduler;
+use pocketmine\Server;
+use RuntimeException;
 
 /**
 * Visual cooldown HUD using a temporary BossBar with decreasing progress.
@@ -139,17 +142,17 @@ final class CooldownHUD {
         }
     }
 
-    private static function getScheduler(): \pocketmine\scheduler\TaskScheduler {
+    private static function getScheduler(): TaskScheduler {
         if (self::$plugin !== null) {
             return self::$plugin->getScheduler();
         }
         // Fallback: try to find an enabled plugin
-        $plugins = \pocketmine\Server::getInstance()->getPluginManager()->getPlugins();
+        $plugins = Server::getInstance()->getPluginManager()->getPlugins();
         foreach ($plugins as $plugin) {
             if ($plugin->isEnabled()) {
                 return $plugin->getScheduler();
             }
         }
-        throw new \RuntimeException("CooldownHUD: No plugin available. Call CooldownHUD::init(\$plugin) first.");
+        throw new RuntimeException("CooldownHUD: No plugin available. Call CooldownHUD::init(\$plugin) first.");
     }
 }

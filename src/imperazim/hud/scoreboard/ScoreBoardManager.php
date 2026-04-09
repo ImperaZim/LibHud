@@ -9,6 +9,7 @@ use GlobalLogger;
 use pocketmine\player\Player;
 use pocketmine\network\mcpe\protocol\SetScorePacket;
 use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
+use Throwable;
 
 /**
 * Class ScoreBoardManager
@@ -34,7 +35,7 @@ final class ScoreBoardManager {
 
       $lines = $scoreboard->getLines();
       $player->getNetworkSession()->sendDataPacket($lines);
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -53,7 +54,7 @@ final class ScoreBoardManager {
         $player->getNetworkSession()->sendDataPacket($pk);
         unset(self::$scoreboards[$player->getName()]);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -75,7 +76,7 @@ final class ScoreBoardManager {
         $pk->entries = [$entry->toEntry()];
         $player->getNetworkSession()->sendDataPacket($pk);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -99,7 +100,7 @@ final class ScoreBoardManager {
         $pk->entries = $entries;
         $player->getNetworkSession()->sendDataPacket($pk);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -114,7 +115,7 @@ final class ScoreBoardManager {
         $scoreboard = self::$scoreboards[$player->getName()];
         self::sendToPlayer($player, $scoreboard);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }

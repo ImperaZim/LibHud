@@ -21,6 +21,7 @@ use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
+use Throwable;
 
 /**
 * Class BossBar
@@ -95,7 +96,7 @@ class BossBar {
         $this->sendBossPacket([$player]);
         $this->players[$player->getId()] = $player;
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -111,7 +112,7 @@ class BossBar {
       foreach ($players as $player) {
         $this->addPlayer($player);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -131,7 +132,7 @@ class BossBar {
       } else {
         GlobalLogger::get()->debug("Removed player that was not added to the boss bar (" . $this . ")");
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -147,7 +148,7 @@ class BossBar {
       foreach ($players as $player) {
         $this->removePlayer($player);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -162,7 +163,7 @@ class BossBar {
       foreach ($this->getPlayers() as $player) {
         $this->removePlayer($player);
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -185,7 +186,7 @@ class BossBar {
     try {
       $this->title = $title;
       $this->sendBossTextPacket($this->getPlayers());
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -208,7 +209,7 @@ class BossBar {
     try {
       $this->subTitle = $subTitle;
       $this->sendBossTextPacket($this->getPlayers());
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -236,7 +237,7 @@ class BossBar {
       $percentage = min(1.0, max(0.0, $percentage));
       $this->getAttributeMap()->get(Attribute::HEALTH)->setValue($percentage * $this->getAttributeMap()->get(Attribute::HEALTH)->getMaxValue(), true, true);
       $this->sendBossHealthPacket($this->getPlayers());
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -267,7 +268,7 @@ class BossBar {
     try {
       $this->color = $color;
       $this->sendBossPacket($this->getPlayers());
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -284,7 +285,7 @@ class BossBar {
           $player->getNetworkSession()->sendDataPacket(BossEventPacket::hide($this->actorId ?? $player->getId()));
         }
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -351,7 +352,7 @@ class BossBar {
       }
 
       $this->sendBossPacket($this->getPlayers());
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -368,7 +369,7 @@ class BossBar {
         $this->getEntity()->close();
       }
       $this->setEntity();
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
     return $this;
@@ -424,7 +425,7 @@ class BossBar {
           ));
         }
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -440,7 +441,7 @@ class BossBar {
           $player->getNetworkSession()->sendDataPacket(BossEventPacket::hide($this->actorId ?? $player->getId()));
         }
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -459,7 +460,7 @@ class BossBar {
           ));
         }
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }
@@ -478,7 +479,7 @@ class BossBar {
           ));
         }
       }
-    } catch (\Throwable $e) {
+    } catch (Throwable $e) {
       GlobalLogger::get()->logException($e);
     }
   }

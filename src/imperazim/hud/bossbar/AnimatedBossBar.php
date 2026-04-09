@@ -7,6 +7,7 @@ namespace imperazim\hud\bossbar;
 use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskHandler;
+use Closure;
 
 /**
 * BossBar with automatic animated progress.
@@ -45,7 +46,7 @@ final class AnimatedBossBar extends BossBar {
         int $duration = 100,
         float $from = 0.0,
         float $to = 1.0,
-        ?\Closure $onComplete = null
+        ?Closure $onComplete = null
     ): void {
         $this->stopAnimation();
 
