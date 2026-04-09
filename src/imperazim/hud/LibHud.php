@@ -12,6 +12,10 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\BossEventPacket;
 use imperazim\hud\tablist\TabList;
 use imperazim\hud\scoreboard\ScoreBoardManager;
+use imperazim\hud\nametag\NameTagManager;
+use imperazim\hud\bossbar\BossBarPool;
+use imperazim\hud\cooldown\CooldownHUD;
+use imperazim\hud\notification\NotificationQueue;
 
 /**
 * Main library for HUD components (BossBar & ScoreBoard).
@@ -52,5 +56,9 @@ final class LibHud extends PluginBase implements Listener {
         $player = $event->getPlayer();
         TabList::cleanup($player);
         ScoreBoardManager::cleanup($player);
+        NameTagManager::cleanup($player);
+        BossBarPool::cleanup($player);
+        CooldownHUD::cleanup($player);
+        NotificationQueue::cleanup($player);
     }
 }

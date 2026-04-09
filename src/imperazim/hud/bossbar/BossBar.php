@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace imperazim\hud\bossbar;
 
 use GlobalLogger;
-
+use imperazim\hud\exception\HudException;
 use pocketmine\Server;
 use pocketmine\player\Player;
 use pocketmine\entity\Entity;
@@ -329,7 +329,7 @@ class BossBar {
   public function setEntity(?Entity $entity = null): static {
     try {
       if ($entity instanceof Entity && ($entity->isClosed() || $entity->isFlaggedForDespawn())) {
-        throw new HudException("Entity $entity cannot be used since it is not valid anymore (closed or flagged for despawn)");
+        throw new HudException("Entity #{$entity->getId()} cannot be used since it is not valid anymore (closed or flagged for despawn)");
       }
 
       if ($this->getEntity() instanceof Entity && !($entity instanceof Player)) {
